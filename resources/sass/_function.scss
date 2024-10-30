@@ -1,0 +1,29 @@
+@function color-invert($color) {
+    @if type-of($color) != 'color' {
+      @error "$color must be a color";
+    }
+
+    @return if(lightness($color) > 50%, black, white);
+  }
+
+  @function color-yiq($color) {
+    @if type-of($color) != 'color' {
+      @error "$color must be a color";
+    }
+
+    $r: red($color);
+    $g: green($color);
+    $b: blue($color);
+
+    $yiq: (($r * 299) + ($g * 587) + ($b * 114)) / 1000;
+
+    @return if($yiq >= 150, black, white);
+  }
+
+  @function shade-color($color, $weight: 15%) {
+    @return mix(black, $color, $weight);
+  }
+
+  @function tint-color($color, $weight: 15%) {
+    @return mix(white, $color, $weight);
+  }
