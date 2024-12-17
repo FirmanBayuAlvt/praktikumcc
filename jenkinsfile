@@ -10,6 +10,7 @@ pipeline {
     }
 
     stages {
+        // Stage 1: Checkout Kode Sumber
         stage('Checkout Kode Sumber') {
             steps {
                 echo 'Mengambil kode sumber dari Git...'
@@ -17,6 +18,7 @@ pipeline {
             }
         }
 
+        // Stage 2: Mengirim File
         stage('Mengirim File') {
             steps {
                 echo 'Mengirim file ke server Ansible...'
@@ -26,6 +28,7 @@ pipeline {
             }
         }
 
+        // Stage 3: Build Image Docker
         stage('Build Image Docker') {
             steps {
                 echo 'Membangun image Docker...'
@@ -35,6 +38,7 @@ pipeline {
             }
         }
 
+        // Stage 4: Push ke DockerHub
         stage('Push ke DockerHub') {
             steps {
                 echo 'Push image Docker ke DockerHub...'
@@ -47,6 +51,7 @@ pipeline {
             }
         }
 
+        // Stage 5: Copy File ke Server Kubernetes
         stage('Copy File ke Server Kubernetes') {
             steps {
                 echo 'Mengirim file konfigurasi Kubernetes...'
@@ -56,6 +61,7 @@ pipeline {
             }
         }
 
+        // Stage 6: Deployment Menggunakan Ansible
         stage('Deployment Menggunakan Ansible') {
             steps {
                 echo 'Melakukan deployment ke Kubernetes menggunakan Ansible...'
