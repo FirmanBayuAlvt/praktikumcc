@@ -1,0 +1,22 @@
+- name: Manage Docker Container
+  hosts: docker-host
+  become: true
+  tasks:
+    - name: Ensure Docker is installed
+      ansible.builtin.apt:
+        name: docker.io
+        state: present
+
+    - name: Start Docker service
+      ansible.builtin.service:
+        name: docker
+        state: started
+        enabled: true
+
+    - name: Run an Nginx container
+      community.docker.docker_container:
+        name: nginx-container
+        image: nginx:latest
+        state: started
+        ports:
+          - "8090:80"
