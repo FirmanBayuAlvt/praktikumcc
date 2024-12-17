@@ -10,7 +10,6 @@ pipeline {
     }
 
     stages {
-
         // Stage 1: Checkout Kode Sumber
         stage('Checkout Kode Sumber') {
             steps {
@@ -23,8 +22,8 @@ pipeline {
         stage('Mengirim File') {
             steps {
                 echo 'Mengirim file ke server Ansible...'
-                sh ''
-                scp Dockerfile ${ANSIBLE_SERVER}:/home/user/Dockerfile
+                sh '''
+                    scp Dockerfile ${ANSIBLE_SERVER}:/home/user/Dockerfile
                 '''
             }
         }
@@ -33,8 +32,8 @@ pipeline {
         stage('Build Image Docker') {
             steps {
                 echo 'Membangun image Docker...'
-                sh ''
-                docker build -t ${DOCKERHUB_USER}/${DOCKER_IMAGE} .
+                sh '''
+                    docker build -t ${DOCKERHUB_USER}/${DOCKER_IMAGE} .
                 '''
             }
         }
@@ -45,8 +44,8 @@ pipeline {
                 echo 'Push image Docker ke DockerHub...'
                 withCredentials([string(credentialsId: "${DOCKERHUB_CRED}", variable: 'DOCKERHUB_PASS')]) {
                     sh '''
-                    docker login -u ${DOCKERHUB_USER} -p ${DOCKERHUB_PASS}
-                    docker push ${DOCKERHUB_USER}/${DOCKER_IMAGE}
+                        docker login -u ${DOCKERHUB_USER} -p ${DOCKERHUB_PASS}
+                        docker push ${DOCKERHUB_USER}/${DOCKER_IMAGE}
                     '''
                 }
             }
@@ -56,8 +55,8 @@ pipeline {
         stage('Copy File ke Server Kubernetes') {
             steps {
                 echo 'Mengirim file konfigurasi Kubernetes...'
-                sh ''
-                scp k8s-config.yaml ${K8S_SERVER}:/home/user/k8s-config.yaml
+                sh '''
+                    scp k8s-config.yaml ${K8S_SERVER}:/home/user/k8s-config.yaml
                 '''
             }
         }
@@ -66,8 +65,8 @@ pipeline {
         stage('Deployment Menggunakan Ansible') {
             steps {
                 echo 'Melakukan deployment ke Kubernetes menggunakan Ansible...'
-                sh ''
-                ssh ${ANSIBLE_SERVER} "ansible-playbook -i /home/user/inventory /home/user/k8s-deployment.yaml"
+                sh '''
+                    ssh ${ANSIBLE_SERVER} "ansible-playbook -i /home/user/inventory /home/user/k8s-deployment.yaml"
                 '''
             }
         }
