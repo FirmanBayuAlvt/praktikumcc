@@ -69,3 +69,14 @@ EXPOSE 9000
 
 # Start PHP-FPM
 CMD ["php-fpm"]
+# Base image
+FROM nginx:latest
+
+# Copy custom configuration or application files
+COPY ./html /usr/share/nginx/html
+
+# Expose the default Nginx port
+EXPOSE 80
+
+# Command to run Nginx
+CMD ["nginx", "-g", "daemon off;"]
