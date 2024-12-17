@@ -10,7 +10,6 @@ pipeline {
     }
 
     stages {
-        // Stage 1: Checkout Kode Sumber
         stage('Checkout Kode Sumber') {
             steps {
                 echo 'Mengambil kode sumber dari Git...'
@@ -18,17 +17,15 @@ pipeline {
             }
         }
 
-        // Stage 2: Mengirim File
         stage('Mengirim File') {
             steps {
                 echo 'Mengirim file ke server Ansible...'
                 sh '''
-                    scp Dockerfile ${ANSIBLE_SERVER}:/home/user/Dockerfile
+                    scp -o StrictHostKeyChecking=no Dockerfile ${ANSIBLE_SERVER}:/home/user/Dockerfile
                 '''
             }
         }
 
-        // Stage 3: Build Image Docker
         stage('Build Image Docker') {
             steps {
                 echo 'Membangun image Docker...'
@@ -38,7 +35,6 @@ pipeline {
             }
         }
 
-        // Stage 4: Push ke DockerHub
         stage('Push ke DockerHub') {
             steps {
                 echo 'Push image Docker ke DockerHub...'
@@ -51,22 +47,20 @@ pipeline {
             }
         }
 
-        // Stage 5: Copy File ke Server Kubernetes
         stage('Copy File ke Server Kubernetes') {
             steps {
                 echo 'Mengirim file konfigurasi Kubernetes...'
                 sh '''
-                    scp k8s-config.yaml ${K8S_SERVER}:/home/user/k8s-config.yaml
+                    scp -o StrictHostKeyChecking=no k8s-config.yaml ${K8S_SERVER}:/home/user/k8s-config.yaml
                 '''
             }
         }
 
-        // Stage 6: Deployment Menggunakan Ansible
         stage('Deployment Menggunakan Ansible') {
             steps {
                 echo 'Melakukan deployment ke Kubernetes menggunakan Ansible...'
                 sh '''
-                    ssh ${ANSIBLE_SERVER} "ansible-playbook -i /home/user/inventory /home/user/k8s-deployment.yaml"
+                    ssh -o StrictHostKeyChecking=no ${ANSIBLE_SERVER} "ansible-playbook -i /home/user/inventory /home/user/k8s-deployment.yaml"
                 '''
             }
         }
