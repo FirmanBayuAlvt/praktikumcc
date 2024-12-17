@@ -10,7 +10,6 @@ pipeline {
     }
 
     stages {
-        // Stage 1: Checkout Kode Sumber
         stage('Checkout Kode Sumber') {
             steps {
                 echo 'Mengambil kode sumber dari Git...'
@@ -18,41 +17,38 @@ pipeline {
             }
         }
 
-        // Stage 2: Mengirim File ke Server Ansible
         stage('Mengirim File ke Server Ansible') {
             steps {
                 echo 'Mengirim file ke server Ansible...'
                 bat '''
                     echo "Mulai SCP ke server Ansible"
-                    scp -o StrictHostKeyChecking=no Dockerfile ${ANSIBLE_SERVER}:/home/user/Dockerfile
+                    scp -o StrictHostKeyChecking=no Dockerfile %ANSIBLE_SERVER%:/home/user/Dockerfile
                     echo "SCP selesai dengan exit code: %ERRORLEVEL%"
                     if %ERRORLEVEL% NEQ 0 exit /b %ERRORLEVEL%
                 '''
             }
         }
 
-        // Stage 3: Build Image Docker
         stage('Build Image Docker') {
             steps {
                 echo 'Membangun image Docker...'
                 bat '''
                     echo "Membangun Docker image..."
-                    docker build -t ${DOCKERHUB_USER}/${DOCKER_IMAGE} .
+                    docker build -t %DOCKERHUB_USER%/%DOCKER_IMAGE% .
                     echo "Build selesai dengan exit code: %ERRORLEVEL%"
                     if %ERRORLEVEL% NEQ 0 exit /b %ERRORLEVEL%
                 '''
             }
         }
 
-        // Stage 4: Push ke DockerHub
         stage('Push ke DockerHub') {
             steps {
                 echo 'Push image Docker ke DockerHub...'
-                withCredentials([string(credentialsId: "${DOCKERHUB_CRED}", variable: 'DOCKERHUB_PASS')]) {
+                withCredentials([string(credentialsId: "%DOCKERHUB_CRED%", variable: 'DOCKERHUB_PASS')]) {
                     bat '''
                         echo "Login ke DockerHub..."
-                        docker login -u ${DOCKERHUB_USER} -p ${DOCKERHUB_PASS}
-                        docker push ${DOCKERHUB_USER}/${DOCKER_IMAGE}
+                        docker login -u %DOCKERHUB_USER% -p %DOCKERHUB_PASS%
+                        docker push %DOCKERHUB_USER%/%DOCKER_IMAGE%
                         echo "Push selesai dengan exit code: %ERRORLEVEL%"
                         if %ERRORLEVEL% NEQ 0 exit /b %ERRORLEVEL%
                     '''
@@ -60,33 +56,30 @@ pipeline {
             }
         }
 
-        // Stage 5: Copy File ke Server Kubernetes
         stage('Copy File ke Server Kubernetes') {
             steps {
                 echo 'Mengirim file konfigurasi Kubernetes...'
                 bat '''
                     echo "Mengirim file konfigurasi ke server Kubernetes..."
-                    scp -o StrictHostKeyChecking=no k8s-config.yaml ${K8S_SERVER}:/home/user/k8s-config.yaml
+                    scp -o StrictHostKeyChecking=no k8s-config.yaml %K8S_SERVER%:/home/user/k8s-config.yaml
                     echo "SCP ke server Kubernetes selesai dengan exit code: %ERRORLEVEL%"
                     if %ERRORLEVEL% NEQ 0 exit /b %ERRORLEVEL%
                 '''
             }
         }
 
-        // Stage 6: Deployment Menggunakan Ansible
         stage('Deployment Menggunakan Ansible') {
             steps {
                 echo 'Melakukan deployment ke Kubernetes menggunakan Ansible...'
                 bat '''
                     echo "Melakukan SSH ke server Ansible dan menjalankan playbook..."
-                    ssh -o StrictHostKeyChecking=no ${ANSIBLE_SERVER} "ansible-playbook -i /home/user/inventory /home/user/k8s-deployment.yaml"
+                    ssh -o StrictHostKeyChecking=no %ANSIBLE_SERVER% "ansible-playbook -i /home/user/inventory /home/user/k8s-deployment.yaml"
                     echo "Deployment selesai dengan exit code: %ERRORLEVEL%"
                     if %ERRORLEVEL% NEQ 0 exit /b %ERRORLEVEL%
                 '''
             }
         }
 
-        // Stage 7: Menjalankan Background Task (Contoh Task Latar Belakang)
         stage('Run Background Task') {
             steps {
                 echo 'Running background task...'
