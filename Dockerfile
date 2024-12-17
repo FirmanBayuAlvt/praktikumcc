@@ -1,0 +1,71 @@
+# # Menggunakan image dasar PHP 8.2 dengan Apache
+# FROM php:8.2-fpm
+
+# # Menginstal ekstensi yang diperlukan
+# RUN docker-php-ext-install pdo pdo_mysql
+
+# # Menyalin file aplikasi Anda ke dalam kontainer
+# COPY . /app
+
+# # Mengatur direktori kerja
+# WORKDIR /app
+
+# RUN apt-get update && apt-get install -y libgd-dev \
+#     && docker-php-ext-configure gd --with-freetype --with-jpeg \
+#     && docker-php-ext-install gd
+
+# # Menginstal Composer
+# RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+
+# # Menjalankan composer install
+# RUN composer install --no-dev --optimize-autoloader
+
+# # Menyediakan akses ke port yang dibutuhkan
+# EXPOSE 3000
+
+# # Menjalankan server
+# CMD ["php", "artisan", "serve", "--host=0.0.0.0", "--port=3000"]
+
+FROM php:8.2-fpm
+
+# Install dependencies
+RUN apt-get update && apt-get install -y \
+    libpng-dev \
+    libjpeg62-turbo-dev \
+    libfreetype6-dev \
+    libzip-dev \
+    zip \
+    unzip \
+    git \
+    curl \
+    && docker-php-ext-configure gd --with-freetype --with-jpeg \
+    && docker-php-ext-install gd zip pdo pdo_mysql exif \
+    && docker-php-ext-enable exif
+
+# Set working directory
+WORKDIR /var/www
+
+# Copy all files to the container
+COPY . .
+
+# Install Composer
+RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+
+# Run Composer commands
+RUN composer install --no-scripts --no-autoloader
+
+# Set permissions for storage and cache directories
+RUN chown -R www-data:www-data /var/www/storage /var/www/bootstrap/cache
+
+# Install Node.js
+RUN curl -sL https://deb.nodesource.com/setup_16.x | bash && apt-get install -y nodejs
+
+# Install Node.js dependencies and build assets
+RUN npm install
+RUN npm run build # Atau gunakan npm run dev jika tidak ingin build
+
+# Expose the port used by PHP-FPM
+EXPOSE 9000
+
+# Start PHP-FPM
+CMD ["php-fpm"]
