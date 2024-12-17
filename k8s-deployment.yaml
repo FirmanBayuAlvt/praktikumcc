@@ -1,0 +1,4 @@
+- hosts: k8s-server
+  tasks:
+    - name: Apply Kubernetes configuration
+      command: kubectl apply -f /home/user/k8s-config.yaml
