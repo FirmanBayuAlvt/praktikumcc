@@ -1,79 +1,32 @@
 pipeline {
     agent any
-
-    environment {
-        DOCKER_IMAGE = 'my-docker-image:latest'
-        DOCKERHUB_USER = 'dockerhub-username'
-        DOCKERHUB_CRED = 'dockerhub-creds'
-        ANSIBLE_SERVER = 'user@192.168.1.100'  // Ganti dengan IP atau hostname yang benar
-        K8S_SERVER = 'user@k8s-server'
-    }
-
     stages {
-        stage('Checkout Kode Sumber') {
+        stage('Git Checkout') {
             steps {
-                echo 'Mengambil kode sumber dari Git...'
-                git branch: 'main', url: 'https://github.com/FirmanBayuAlvt/praktikumcc.git'
+                echo 'Building...'
             }
         }
-
-        stage('Mengirim File') {
+        stage('Sending Dockerfile to Ansible server') {
             steps {
-                echo 'Mengirim file ke server Ansible...'
-                sh '''
-                    echo "Mulai SCP ke server Ansible"
-                    scp -o StrictHostKeyChecking=no Dockerfile ${ANSIBLE_SERVER}:/home/user/Dockerfile
-                    echo "SCP selesai dengan exit code: $?"
-                '''
+                echo 'Testing...'
             }
         }
-
-        stage('Build Image Docker') {
+        stage('Docker Build Image') {
             steps {
-                echo 'Membangun image Docker...'
-                sh '''
-                    docker build -t ${DOCKERHUB_USER}/${DOCKER_IMAGE} .
-                '''
+                echo 'Deploying...'
             }
-        }
-
-        stage('Push ke DockerHub') {
+            stage('Push Docker Images to DockerHub') {
             steps {
-                echo 'Push image Docker ke DockerHub...'
-                withCredentials([string(credentialsId: "${DOCKERHUB_CRED}", variable: 'DOCKERHUB_PASS')]) {
-                    sh '''
-                        docker login -u ${DOCKERHUB_USER} -p ${DOCKERHUB_PASS}
-                        docker push ${DOCKERHUB_USER}/${DOCKER_IMAGE}
-                    '''
-                }
+                echo 'Deploying...'
             }
-        }
-
-        stage('Copy File ke Server Kubernetes') {
+            stage('Copy files from jenkins to kubernetes server') {
             steps {
-                echo 'Mengirim file konfigurasi Kubernetes...'
-                sh '''
-                    scp -o StrictHostKeyChecking=no k8s-config.yaml ${K8S_SERVER}:/home/user/k8s-config.yaml
-                '''
+                echo 'Deploying...'
             }
-        }
-
-        stage('Deployment Menggunakan Ansible') {
+            stage('kubernetes deployment using ansible') {
             steps {
-                echo 'Melakukan deployment ke Kubernetes menggunakan Ansible...'
-                sh '''
-                    ssh -o StrictHostKeyChecking=no ${ANSIBLE_SERVER} "ansible-playbook -i /home/user/inventory /home/user/k8s-deployment.yaml"
-                '''
+                echo 'Deploying...'
             }
-        }
-    }
-
-    post {
-        success {
-            echo 'Pipeline berhasil dijalankan!'
-        }
-        failure {
-            echo 'Pipeline gagal, periksa log untuk detail kesalahan!'
         }
     }
 }
